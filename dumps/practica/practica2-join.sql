@@ -106,11 +106,53 @@ left join solicitudes_empresas se
 	on se.cuit=emp.cuit
 left join cargos car
 	on car.cod_cargo=se.cod_cargo;
+    
+-- 11) Mostrar para todas las solicitudes la razón social de la empresa solicitante, el cargo
+--     y si se hubiese realizado un contrato los datos de la(s) persona(s).
+select emp.cuit, emp.razon_social, car.desc_cargo,
+ coalesce(per.dni, 'Sin contrato') as DNI, coalesce(per.apellido, 'Sin contrato') as Apellido, coalesce(per.nombre, 'Sin contrato') as Nombre
+from empresas emp
+inner join solicitudes_empresas se
+	on se.cuit=emp.cuit
+inner join cargos car
+	on car.cod_cargo=se.cod_cargo
+left join contratos con
+	on con.cuit=se.cuit
+    and con.cod_cargo=se.cod_cargo
+    and con.fecha_solicitud=se.fecha_solicitud
+left join personas per
+	on per.dni=con.dni;
+    
+-- 12) Mostrar para todas las solicitudes la razón social de la empresa solicitante, el cargo de
+--     las solicitudes para las cuales no se haya realizado un contrato.
+
+-- ????????????????????????????????????????????????????????????????????????????????????????????
+select emp.cuit, emp.razon_social, car.desc_cargo
+from empresas emp
+inner join solicitudes_empresas se
+	on se.cuit=emp.cuit
+right join contratos con
+	on con.cod_cargo=se.cod_cargo
+right join cargos car
+	on car.cod_cargo=con.cod_cargo;
+    
+    
+-- 13) Listar todos los cargos y para aquellos que hayan sido realizados (como
+-- 	   antecedente) por alguna persona indicar nombre y apellido de la persona y empresa donde
+--     lo ocupó.
+    
+select car.desc_cargo, per.dni, per.apellido, emp.razon_social
+from cargos car
+left join antecedentes ant
+	on ant.cod_cargo=car.cod_cargo
+left join personas per
+	on per.dni=ant.dni
+left join empresas emp
+	on emp.cuit=ant.cuit;
+    
+    
 
 
 
 
-
-
-
-
+    
