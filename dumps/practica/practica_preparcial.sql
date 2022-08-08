@@ -82,3 +82,30 @@ left join locacion l
 	on a.codigo_locacion = l.codigo
 order by t.nro, es.fecha_hora_ini;
 
+
+-- 5) Listado de tour contratados. Listar para cada tour contratado entre enero y julio 2022
+--    inclusive los clientes que lo contrataron. Indicar nro y tematica del tour,
+--    fecha y hora de contratacion y cuil, tipo y denominacion del cliente. No se deberan
+--    mostrar registros repetidos y deberá prdenarse alfabeticamente por denominacion de cliente.
+
+select t.nro, t.tematica, con.fecha_hora, cli.cuil, cli.tipo, cli.denom
+from tour t inner join contrata con
+on t.nro=con.nro_tour
+inner join cliente cli
+on con.cuil_cliente=cli.cuil
+where con.fecha_hora between '20220101' and '20220731'
+order by cli.denom asc;
+
+-- 6) Idiomas y solicitudes de julio 2022. Listar los idiomas y, para aquellos que hayan sido
+--    solicitados en contrataciones de julio 2022, mostrar en qué eventos fueron solicitados
+--    Indicar codigo y nombre del idioma, numero y tematica de tour. Ordenar por nombre idioma.
+
+select i.*, t.nro, t.tematica
+from idioma i
+left join contrata con
+	on con.codigo_idioma=i.codigo
+    and con.fecha_hora between '2022-07-01' and '2022-07-31'
+left join tour t
+	on t.nro=con.nro_tour
+order by i.nombre;
+
