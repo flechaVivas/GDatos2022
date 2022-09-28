@@ -24,18 +24,17 @@ with cte_empresas as (
 	from contratos con
 	inner join personas p
 		on p.dni=con.dni
-	inner join empresas emp
-		on emp.cuit=con.cuit
 	where p.apellido = 'Lopez' and p.nombre = 'Stefania'
 )
-select emp.cuit, emp.razon_social
+select distinct p.apellido, p.nombre
 from contratos c
+inner join cte_empresas 
+	on cte_empresas.cuit=c.cuit
 inner join personas p
 	on p.dni=c.dni
 inner join empresas emp
-	on emp.cuit=c.cuit
-inner join cte_empresas 
-	on cte_empresas.cuit=c.cuit;
+	on emp.cuit=c.cuit;
+
 
 
 /*
