@@ -14,7 +14,7 @@ and emp.cuil not in(
 		on ig.cuil_guia=e.cuil
 	inner join idioma idi
 		on idi.codigo=ig.codigo_idioma
-	where idi.nombre in ('%Ingles%' , '%Portugues%')
+	where idi.nombre in ('%Ingl_s%' , '%Portugu_s%')
 );
 
 /*
