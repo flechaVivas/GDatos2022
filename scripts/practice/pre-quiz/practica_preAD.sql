@@ -218,7 +218,24 @@ left join contrata con
 group by idi.codigo, idi.nombre
 order by porcen desc;
 
-
+-- Ejs adaptados del ultimo final MCT 2022
+-- DDL
+/*
+	Realice todos los cambios necesarios (agregado de tablas, para modificar el modelo relacional propuesto de modo que
+	responda a los siguientes cambios de requerimientos:
+	1. Se desea asignar a los empleados una categoría. Crear una entidad categoría con un código numérico secuencial
+	que la identifique y un nombre. Las categorías a registrar son: Trainee, Jr, Ssr, Sr
+	2. Modificar la tabla empleados para registrar la categoría correspondiente en referencia a la nueva tabla.
+	3. Categorizar los empleados de la siguiente forma:
+		a. Para los guias
+			a1. Si ha guiado más tours que el promedio de tours guiados por guia debe ser “Senior”
+			a2. Si ha guiado más tours que la mitad del promedio de tours guiados por guia debe ser "Ssr"
+			a3. Si ha guiado más tours que la mitad del promedio de tours guiados por guia debe ser "Jr"
+            a4. Si no ha guiado tours debe ser Trainee
+		b. Para los encaragados
+			idem a1, a2, a3, a4
+            
+*/
 
 
 
