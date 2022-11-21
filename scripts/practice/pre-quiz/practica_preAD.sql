@@ -195,3 +195,31 @@ and t.fecha_hora_salida between '20220101' and '20221231'
 group by emp.cuil, emp.tipo
 having horas > @prom_horas
 order by horas desc, emp.apellido asc, emp.nombre asc;
+
+/*
+	Ranking de idiomas contratados indicando: codigo y descripcion del idioma, suma de la cantidad
+	de idiomas contratados para todos los tours y porcentaje de esta suma sobre la suma total de 
+    las cantidades de idiomas contratados. Los idiomas que no hayan sido contratados deberán
+    figurar en la lista con cantidad total 0.
+	Ordenar el ranking en forma descendente por porcentaje.
+*/
+
+select count(con.codigo_idioma) into @total
+from contrata con
+inner join idioma idi
+	on idi.codigo=con.codigo_idioma;
+
+select idi.codigo, idi.nombre
+	, count(idi.codigo)
+    , (count(idi.codigo) / @total) * 100 porcen
+from idioma idi
+left join contrata con
+	on idi.codigo=con.codigo_idioma
+group by idi.codigo, idi.nombre
+order by porcen desc;
+
+
+
+
+
+
