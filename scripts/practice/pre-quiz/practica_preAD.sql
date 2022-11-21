@@ -234,9 +234,36 @@ order by porcen desc;
             a4. Si no ha guiado tours debe ser Trainee
 		b. Para los encaragados
 			idem a1, a2, a3, a4
-            
 */
 
 
 
 
+/*
+	Actualización de sueldos: Debido a la gran inflacion, la empresa ha decidido un aumento
+	de sueldos para los empleados. El aumento regirá a partir del miercoles próximo. El
+	aumento será de un 35% a los que tengan un salario por hora menor a $2000 y de 25% a los que tengan un
+	salario por hora mayor o igual a $2000.
+*/
+
+start transaction;
+
+insert into salario_hora(cuil_empleado,fecha_desde,valor)
+with ult_salario as(
+	select sh.cuil_empleado, max(sh.fecha_desde) fecha
+    from salario_hora sh
+    where sh.fecha_desde <= current_date()
+    group by sh.cuil_empleado	
+)
+select us.cuil_empleado, '20221123',
+	case 
+		when valor < 2000 then valor * 1.35
+        when valor >= 2000 then valor * 1.25
+	end
+from ult_salario us
+inner join salario_hora sh
+	on sh.cuil_empleado=us.cuil_empleado
+    and sh.fecha_desde=us.fecha;
+
+rollback;
+commit;
