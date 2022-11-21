@@ -130,13 +130,11 @@ having  count(con.nro_tour) >= 2;
 -- compeltarrrrrrr
 
 with ult_tour as (
-
 	select c.cuil, max(con.fecha_hora) ult_fecha
     from cliente c
     left join contrata con
 		on con.cuil_cliente=c.cuil
 	group by c.cuil
-
 )
 select datediff(t.fecha_hora_salida, con.fecha_hora)
 from cliente c
@@ -171,3 +169,29 @@ inner join salario_hora sh
 rollback;
 -- commit;
 
+/*
+	Indicar los empleados con más horas trabajadas. Listar los empleados
+    que en 2022 trabajaron más horas que el promedio de horas trabajadas.
+    Indicar nombre, apellido, tipo, total horas trabajadas en 2022 y
+    cuantas horas más que el promedio general. Ordenar por total de hs trbajadas
+    descendente y por apellido y nombre alfabeticamente
+*/
+
+select avg(time_to_sec(timediff(t.fecha_hora_regreso, t.fecha_hora_salida))/3600) into @prom_horas
+from empleado emp
+inner join tour t
+	on t.cuil_guia=emp.cuil
+where emp.tipo in ('guia')
+and t.fecha_hora_salida between '20220101' and '20221231';
+
+select emp.cuil, emp.nombre, emp.apellido, emp.tipo
+	, sum(time_to_sec(timediff(t.fecha_hora_regreso, t.fecha_hora_salida))/3600) horas
+    , sum(time_to_sec(timediff(t.fecha_hora_regreso, t.fecha_hora_salida))/3600) - @prom_horas
+from empleado emp
+inner join tour t
+	on t.cuil_guia=emp.cuil
+where emp.tipo in ('guia')
+and t.fecha_hora_salida between '20220101' and '20221231'
+group by emp.cuil, emp.tipo
+having horas > @prom_horas
+order by horas desc, emp.apellido asc, emp.nombre asc;
