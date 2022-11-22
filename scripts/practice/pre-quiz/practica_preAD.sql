@@ -218,8 +218,7 @@ left join contrata con
 group by idi.codigo, idi.nombre
 order by porcen desc;
 
--- Ejs adaptados del ultimo final MCT 2022
--- DDL
+
 /*
 	Realice todos los cambios necesarios (agregado de tablas, para modificar el modelo relacional propuesto de modo que
 	responda a los siguientes cambios de requerimientos:
@@ -228,15 +227,95 @@ order by porcen desc;
 	2. Modificar la tabla empleados para registrar la categoría correspondiente en referencia a la nueva tabla.
 	3. Categorizar los empleados de la siguiente forma:
 		a. Para los guias
-			a1. Si ha guiado más tours que el promedio de tours guiados por guia debe ser “Senior”
+			a1. Si ha guiado más tours que el promedio de tours guiados por guia debe ser “Sr”
 			a2. Si ha guiado más tours que la mitad del promedio de tours guiados por guia debe ser "Ssr"
-			a3. Si ha guiado más tours que la mitad del promedio de tours guiados por guia debe ser "Jr"
-            a4. Si no ha guiado tours debe ser Trainee
+			a3. Si ha guiado menos tours que la mitad del promedio de tours guiados por guia debe ser "Jr"
+            a4. Si no ha guiado tours debe ser 'Trrainee'
 		b. Para los encaragados
 			idem a1, a2, a3, a4
 */
 
+-- Muy falopa, no se si funciona pq hay que limpiar todos atbs categoria
 
+start transaction;
+
+DROP TABLE IF EXISTS categoria;
+CREATE TABLE `roleplay_a_arruinar`.`categoria` (
+  `idCategoria` INT NOT NULL AUTO_INCREMENT,
+  `nombre` VARCHAR(45) NOT NULL,
+  PRIMARY KEY (`idCategoria`),
+  UNIQUE INDEX `nombre_UNIQUE` (`nombre` ASC) VISIBLE);
+
+INSERT INTO `roleplay_a_arruinar`.`categoria` (`idCategoria`, `nombre`) VALUES ('1', 'Trainee');
+select last_insert_id() into @tr;
+INSERT INTO `roleplay_a_arruinar`.`categoria` (`idCategoria`, `nombre`) VALUES ('2', 'Jr');
+select last_insert_id() into @jr;
+INSERT INTO `roleplay_a_arruinar`.`categoria` (`idCategoria`, `nombre`) VALUES ('3', 'Ssr');
+select last_insert_id() into @ssr;
+INSERT INTO `roleplay_a_arruinar`.`categoria` (`idCategoria`, `nombre`) VALUES ('4', 'Sr');
+select last_insert_id() into @sr;
+
+select avg(total) into @prom_encargados
+from(
+	select count(t.cuil_guia) total
+	from empleado emp
+	inner join tour t
+		on t.cuil_guia=emp.cuil
+	where emp.tipo in ('guia')
+) pe;
+    
+select avg(total) into @prom_guiados
+from(
+	select count(es.cuil_encargado) total
+	from empleado emp
+	inner join escala es
+		on es.cuil_encargado=emp.cuil
+	where emp.tipo in ('encargado')
+) pg;
+
+with cant_guiados as(
+	
+    select emp.cuil, count(*) cant
+	from empleado emp
+	inner join tour t
+		on t.cuil_guia=emp.cuil
+	where emp.tipo in ('guia')
+    group by emp.cuil
+
+), cant_encargados as(
+	
+	select emp.cuil, count(*) cant
+	from empleado emp
+	inner join escala es
+		on es.cuil_encargado=emp.cuil
+	where emp.tipo in ('encargado')
+    group by emp.cuil
+
+)
+update empleado emp
+inner join cant_guiados cg
+	on cg.cuil=emp.cuil
+inner join cant_encargados ce
+	on ce.cuil=emp.cuil
+set categoria = 
+case 
+	when emp.tipo = 'guia' then 
+		case 
+			when cg.cant = 0 then @tr
+            when cg.cant <= @prom_guiados/2 then @jr
+            when cg.cant >= @prom_guiados/2 then @ssr
+            when cg.cant > @prom_guiados then @sr
+		end
+	when emp.tipo = 'encargado' then
+		case
+			when ce.cant = 0 then @tr
+			when ce.cant <= @prom_encargado/2 then @jr
+			when ce.cant >= @prom_encargado/2 then @ssr
+			when ce.cant > @prom_encargado then @sr
+		end
+end;
+rollback;
+commit;
 
 
 /*
