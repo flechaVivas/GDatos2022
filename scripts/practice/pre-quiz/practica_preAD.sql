@@ -8,26 +8,26 @@
 
 start transaction;
 
-with cant_con_tem as(
-	select t.tematica, count(t.nro) as cant
-    from tour t
-	inner join contrata con
-		on con.nro_tour=t.nro
-	where con.fecha_hora between '20220101' and '20230101'
-    group by t.tematica
-)
-select max(cant) into @mayor
-from cant_con_tem;
+-- with cant_con_tem as(
+-- 	select t.tematica, count(t.nro) as cant
+--     from tour t
+-- 	inner join contrata con
+-- 		on con.nro_tour=t.nro
+-- 	where con.fecha_hora between '20220101' and '20230101'
+--     group by t.tematica
+-- )
+-- select max(cant) into @mayor
+-- from cant_con_tem;
 
-insert into tour(nro, fecha_hora_salida,fecha_hora_regreso,lugar_salida,precio_unitario, vehiculo, tematica, cuil_guia)
-with tematicas_frecuentes as(
-	select t.tematica
-    from tour t
-    group by t.tematica
-    having count(t.nro) = @mayor
-)
+-- insert into tour(nro, fecha_hora_salida,fecha_hora_regreso,lugar_salida,precio_unitario, vehiculo, tematica, cuil_guia)
+-- with tematicas_frecuentes as(
+-- 	select t.tematica
+--     from tour t
+--     group by t.tematica
+--     having count(t.nro) = @mayor
+-- )
 
-select @mayor
+-- select @mayor
 
 rollback;
 commit;
@@ -246,13 +246,13 @@ CREATE TABLE `roleplay_a_arruinar`.`categoria` (
   PRIMARY KEY (`idCategoria`),
   UNIQUE INDEX `nombre_UNIQUE` (`nombre` ASC) VISIBLE);
 
-INSERT INTO `roleplay_a_arruinar`.`categoria` (`idCategoria`, `nombre`) VALUES ('1', 'Trainee');
+INSERT INTO `roleplay_a_arruinar`.`categoria` (`idCategoria`, `nombre`) VALUES ('Trainee');
 select last_insert_id() into @tr;
-INSERT INTO `roleplay_a_arruinar`.`categoria` (`idCategoria`, `nombre`) VALUES ('2', 'Jr');
+INSERT INTO `roleplay_a_arruinar`.`categoria` (`idCategoria`, `nombre`) VALUES ('Jr');
 select last_insert_id() into @jr;
-INSERT INTO `roleplay_a_arruinar`.`categoria` (`idCategoria`, `nombre`) VALUES ('3', 'Ssr');
+INSERT INTO `roleplay_a_arruinar`.`categoria` (`idCategoria`, `nombre`) VALUES ('Ssr');
 select last_insert_id() into @ssr;
-INSERT INTO `roleplay_a_arruinar`.`categoria` (`idCategoria`, `nombre`) VALUES ('4', 'Sr');
+INSERT INTO `roleplay_a_arruinar`.`categoria` (`idCategoria`, `nombre`) VALUES ('Sr');
 select last_insert_id() into @sr;
 
 select avg(total) into @prom_encargados
@@ -332,7 +332,7 @@ with ult_salario as(
 	select sh.cuil_empleado, max(sh.fecha_desde) fecha
     from salario_hora sh
     where sh.fecha_desde <= current_date()
-    group by sh.cuil_empleado	
+    group by sh.cuil_empleado
 )
 select us.cuil_empleado, '20221123',
 	case 
