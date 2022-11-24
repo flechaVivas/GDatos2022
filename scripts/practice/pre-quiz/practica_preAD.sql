@@ -504,4 +504,23 @@ inner join empleado emp
 rollback;
 commit;
 
+/*
+	Actualizacion de tabla tour. Se requiere que la columna vehiculo no sea nula.
+    Para aquellas que no tengan vehiculo, cargarle 'En DodgePatas'
+*/
+
+begin;
+
+update tour
+set vehiculo='En DodgePatas'
+where tour.vehiculo='';
+
+ALTER TABLE `role_play_events_a_arruinar`.`tour` 
+CHANGE COLUMN `vehiculo` `vehiculo` VARCHAR(255) NOT NULL ;
+
+-- rollback;
+commit;
+
+
+
 
