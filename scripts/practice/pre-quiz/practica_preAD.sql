@@ -462,3 +462,46 @@ inner join asistente asi
 group by c.cuil
 having cant > @promedio;
 
+
+/*
+	Actualizacion de salario por puesto. Debido a la alta inflación, se ha decidido 
+    amunetarle el sueldo a los empleados.
+		5% a los encargados con salario hora actual menor a $1500, 3% a los que tengan mayor
+        7% a los guias con salario hora actual menor a $1200. 5% a los que tengan mayor
+	La actualizacion rige a partir de hoy.
+*/
+
+start transaction;
+
+insert into salario_hora(cuil_empleado,fecha_desde,valor)
+with last_salario as(
+	select emp.cuil, max(sh.fecha_desde) fecha
+    from empleado emp
+    inner join salario_hora sh
+		on sh.cuil_empleado=emp.cuil
+	group by emp.cuil
+)
+select sh.cuil_empleado, current_date(),
+	case
+		when emp.tipo='guia' then
+			case
+				when valor < 1500 then valor * 1.05
+				when valor > 1500 then valor * 1.03
+            end    
+		when emp.tipo='encargado' then
+			case
+				when valor < 1200 then valor * 1.07
+				when valor > 1200 then valor * 1.05
+            end
+	end
+from last_salario ls
+inner join salario_hora sh
+	on sh.cuil_empleado=ls.cuil
+    and sh.fecha_desde=ls.fecha
+inner join empleado emp
+	on emp.cuil=ls.cuil;
+
+rollback;
+commit;
+
+
