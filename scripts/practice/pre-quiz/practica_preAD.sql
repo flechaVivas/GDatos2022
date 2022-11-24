@@ -381,3 +381,61 @@ set c.cod_tipo=tc.cod_tipo;
 
 -- rollback;
 commit;
+
+/*
+	Empleados excediendo el máximo de horas al mes: realizar un procedimiento almacenado que calcule las horas trabajadas
+    reales totales por empleado en el mes (usando la fecha de inicio) y liste aquellos que exceden el máximo de horas que deberían
+    haber trabajado en el mes. El procedimiento almacenado debe recibir como parámetros el mes, el año y el máximo de horas.
+    Debe listar los empleados indicando cuil, nombre, apellido, tipo, cantidad total de horas trabajadas
+    y horas excedidas. Al finalizar invocar el procedimiento.
+*/
+
+
+USE `role_play_events_a_arruinar`;
+DROP procedure IF EXISTS `horas_trabajadas`;
+
+DELIMITER $$
+USE `role_play_events_a_arruinar`$$
+CREATE PROCEDURE `horas_trabajadas` (in mes varchar(10), in anio varchar(10), hs int)
+BEGIN
+
+with hs_trabajadas_guia as(
+	select emp.cuil
+		, sum(time_to_sec(timediff(t.fecha_hora_regreso, t.fecha_hora_salida))/3600) hs_trabajadas
+	from empleado emp
+	inner join tour t
+		on t.cuil_guia=emp.cuil
+	where emp.tipo='guia'
+	and month(t.fecha_hora_salida)=mes
+	and year(t.fecha_hora_salida)=anio
+	group by emp.cuil
+	having hs_trabajadas > hs
+), hs_trabajadas_encargado as(
+	select emp.cuil
+		, sum(time_to_sec(timediff(es.fecha_hora_fin, es.fecha_hora_ini))/3600) hs_trabajadas
+	from empleado emp
+    inner join escala es
+		on es.cuil_encargado=emp.cuil
+	where emp.tipo='encargado'
+    and month(es.fecha_hora_ini)=mes
+    and year(es.fecha_hora_ini)=anio
+	group by emp.cuil
+    having hs_trabajadas > hs
+) 
+select emp.cuil, emp.nombre, emp.apellido, emp.tipo
+	, g.hs_trabajadas, e.hs_trabajadas
+from empleado emp
+left join hs_trabajadas_guia g
+	on g.cuil=emp.cuil
+left join hs_trabajadas_encargado e
+	on e.cuil=emp.cuil;
+
+END$$
+
+DELIMITER ;
+
+call horas_trabajadas(09,2022,20);
+
+
+
+
