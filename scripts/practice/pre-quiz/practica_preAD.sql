@@ -434,7 +434,7 @@ END$$
 
 DELIMITER ;
 
-call horas_trabajadas(09,2022,20);
+call horas_trabajadas('07','2022',0);
 
 
 
