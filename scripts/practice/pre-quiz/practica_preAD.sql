@@ -346,3 +346,38 @@ inner join salario_hora sh
 
 rollback;
 commit;
+
+
+/*
+	Se desea categorizar a los tipos de cliente en una nueva tabla tipo_cliente
+*/
+
+CREATE TABLE `role_play_events_a_arruinar`.`tipo_cliente` (
+`cod_tipo` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+`descripcion` VARCHAR(45) NOT NULL,
+PRIMARY KEY (`cod_tipo`),
+UNIQUE INDEX `descripcion_UNIQUE` (`descripcion` ASC) VISIBLE);
+
+ALTER TABLE `role_play_events_a_arruinar`.`cliente` 
+ADD COLUMN `cod_tipo` INT UNSIGNED NULL AFTER `tipo`,
+ADD INDEX `fk_cliente_tipo_idx` (`cod_tipo` ASC) VISIBLE;
+;
+ALTER TABLE `role_play_events_a_arruinar`.`cliente` 
+ADD CONSTRAINT `fk_cliente_tipo`
+  FOREIGN KEY (`cod_tipo`)
+  REFERENCES `role_play_events_a_arruinar`.`tipo_cliente` (`cod_tipo`)
+  ON DELETE RESTRICT
+  ON UPDATE CASCADE;
+
+start transaction;
+
+insert into tipo_cliente(descripcion)
+select distinct tipo from cliente;
+
+update cliente c
+inner join tipo_cliente tc
+	on tc.descripcion=c.tipo
+set c.cod_tipo=tc.cod_tipo;
+
+-- rollback;
+commit;
