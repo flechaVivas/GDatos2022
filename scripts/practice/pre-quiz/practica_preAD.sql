@@ -508,7 +508,6 @@ commit;
 	Actualizacion de tabla tour. Se requiere que la columna vehiculo no sea nula.
     Para aquellas que no tengan vehiculo, cargarle 'En DodgePatas'
 */
-
 begin;
 
 update tour
