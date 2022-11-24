@@ -436,6 +436,29 @@ DELIMITER ;
 
 call horas_trabajadas('07','2022',0);
 
+/*
+	Listar todos los clientes con asistentes cuya cantidad de asistentes sea major o igual
+    al promedio de asistentes que llevan todos los clientes.
+*/
 
+with cant_asistentes as(
+	select c.cuil, count(asi.dni) cant
+	from cliente c
+	inner join asistente_contrato ac
+		on ac.cuil_cliente=c.cuil
+	inner join asistente asi
+		on asi.dni=ac.dni_asistente
+	group by c.cuil
+)
+select avg(c.cant) into @promedio
+from cant_asistentes c;
 
+select c.cuil, count(asi.dni) cant
+from cliente c
+inner join asistente_contrato ac
+	on ac.cuil_cliente=c.cuil
+inner join asistente asi
+	on asi.dni=ac.dni_asistente
+group by c.cuil
+having cant > @promedio;
 
