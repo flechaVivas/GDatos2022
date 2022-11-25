@@ -257,13 +257,13 @@ CREATE TABLE `roleplay_a_arruinar`.`categoria` (
   PRIMARY KEY (`idCategoria`),
   UNIQUE INDEX `nombre_UNIQUE` (`nombre` ASC) VISIBLE);
 
-INSERT INTO `roleplay_a_arruinar`.`categoria` (`idCategoria`, `nombre`) VALUES ('Trainee');
+INSERT INTO `roleplay_a_arruinar`.`categoria` (`nombre`) VALUES ('Trainee');
 select last_insert_id() into @tr;
-INSERT INTO `roleplay_a_arruinar`.`categoria` (`idCategoria`, `nombre`) VALUES ('Jr');
+INSERT INTO `roleplay_a_arruinar`.`categoria` (`nombre`) VALUES ('Jr');
 select last_insert_id() into @jr;
-INSERT INTO `roleplay_a_arruinar`.`categoria` (`idCategoria`, `nombre`) VALUES ('Ssr');
+INSERT INTO `roleplay_a_arruinar`.`categoria` (`nombre`) VALUES ('Ssr');
 select last_insert_id() into @ssr;
-INSERT INTO `roleplay_a_arruinar`.`categoria` (`idCategoria`, `nombre`) VALUES ('Sr');
+INSERT INTO `roleplay_a_arruinar`.`categoria` (`nombre`) VALUES ('Sr');
 select last_insert_id() into @sr;
 
 select avg(total) into @prom_encargados
