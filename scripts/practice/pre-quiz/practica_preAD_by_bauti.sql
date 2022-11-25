@@ -222,7 +222,7 @@ order by total_ventas asc;
 de este año. Indicar numero, precio unitario sugerido, fecha de salida y tematica.
 */
 
-select t.nro, t.precio_unitario_sugerido, t.fecha_hora_salida, t.tematica
+select t.nro, t.fecha_hora_salida, t.tematica
 from tour t
 where t.tematica = 'SNK'
 and t.nro not in(
@@ -233,6 +233,15 @@ and t.nro not in(
 	where e.fecha_hora_ini between '20221001' and '20221031'
 	and t.tematica = 'SNK'
 );
+
+-- Solucion con left join:
+
+select t.nro, t.fecha_hora_salida, t.tematica
+from tour t
+left join escala es
+	on es.nro_tour=t.nro
+    and es.fecha_hora_ini between '20221001' and '20221031'
+where t.tematica='SNK' and es.nro_tour is null;
 
 
 /*
