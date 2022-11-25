@@ -48,11 +48,11 @@ rollback;
     participado multiplicado por el salario_hora vigente al momento del tour * 8 horas.
 */
 
-USE `role_play_events`;
+USE `role_play_events_a_arruinar`;
 DROP function IF EXISTS `salario_total_a_fecha`;
 
 DELIMITER $$
-USE `role_play_events`$$
+USE `role_play_events_a_arruinar`$$
 CREATE FUNCTION `salario_total_a_fecha` (f_desde date, f_hasta date)
 RETURNS DECIMAL(9,2)
 READS SQL DATA
@@ -69,14 +69,15 @@ with sal_a_fecha_tour as(
     and sh.fecha_desde <= t.fecha_hora_salida
     group by sh.cuil_empleado
 ), cant_tours_emp as(
-	select emp.cuil, count(t.nro) cant
+	select emp.cuil
+		, sum(day(t.fecha_hora_regreso) - day(t.fecha_hora_salida)) dias
     from empleado emp
     inner join tour t
 		on t.cuil_guia=emp.cuil
 	where t.fecha_hora_salida between f_desde and f_hasta
 	group by emp.cuil
 )
-select sum((valor*cant)*8) into total
+select sum((valor*dias)*8) into total
 from salario_hora sh
 inner join sal_a_fecha_tour sf
 	on sh.cuil_empleado=sf.cuil_guia
@@ -444,7 +445,7 @@ END$$
 
 DELIMITER ;
 
-call horas_trabajadas('07','2022',0);
+call horas_trabajadas(06,2022,10);
 
 /*
 	Listar todos los clientes con asistentes cuya cantidad de asistentes sea major o igual
