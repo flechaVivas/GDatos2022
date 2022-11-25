@@ -6,31 +6,41 @@
 	Si hay más de una temática con la misma frecuencia registrar todos con el mismo criterio
 */
 
+with tematicas as(
+	select t.tematica, count(*) cant
+    from tour t
+    inner join contrata con
+		on con.nro_tour=t.nro
+	group by t.tematica
+)
+select max(t.cant) into @maximo
+from tematicas t;
+
 start transaction;
 
--- with cant_con_tem as(
--- 	select t.tematica, count(t.nro) as cant
---     from tour t
--- 	inner join contrata con
--- 		on con.nro_tour=t.nro
--- 	where con.fecha_hora between '20220101' and '20230101'
---     group by t.tematica
--- )
--- select max(cant) into @mayor
--- from cant_con_tem;
+insert into tour(nro, fecha_hora_salida, fecha_hora_regreso, lugar_salida, vehiculo, tematica, cuil_guia)
+with frecuentes as(
+	select t.tematica, max(t.fecha_hora_salida) max_fecha
+	from tour t
+	inner join contrata con
+		on con.nro_tour=t.nro
+	group by t.tematica
+	having count(*)=@maximo
+)
+select ((select max(nro) from tour) + 1), '20221201'
+	, adddate('20221201',interval datediff(fecha_hora_regreso,fecha_hora_salida) day)
+    , t.lugar_salida
+    , t.vehiculo
+    , t.tematica
+    , t.cuil_guia
+from frecuentes f
+inner join tour t
+	on t.tematica=f.tematica
+    and t.fecha_hora_salida=f.max_fecha;
 
--- insert into tour(nro, fecha_hora_salida,fecha_hora_regreso,lugar_salida,precio_unitario, vehiculo, tematica, cuil_guia)
--- with tematicas_frecuentes as(
--- 	select t.tematica
---     from tour t
---     group by t.tematica
---     having count(t.nro) = @mayor
--- )
-
--- select @mayor
-
-rollback;
 commit;
+rollback;
+
 
 /* 
 	Se requiere conocer el salario total que corresponde a todos los guias asignados a tours en un rango de fechas
@@ -508,6 +518,7 @@ commit;
 	Actualizacion de tabla tour. Se requiere que la columna vehiculo no sea nula.
     Para aquellas que no tengan vehiculo, cargarle 'En DodgePatas'
 */
+
 begin;
 
 update tour
@@ -519,7 +530,4 @@ CHANGE COLUMN `vehiculo` `vehiculo` VARCHAR(255) NOT NULL ;
 
 -- rollback;
 commit;
-
-
-
 
