@@ -140,8 +140,6 @@ having  count(con.nro_tour) >= 2;
     y el importe inicial, el descuento y total final
 */
 
--- compeltarrrrrrr
-
 with ult_tour as (
 	select c.cuil, max(con.fecha_hora) ult_fecha
     from cliente c
@@ -151,11 +149,11 @@ with ult_tour as (
 	group by c.cuil
 )
 select c.cuil, c.denom
-	, coalesce(t.tematica, 'No contrató tour')
-    , coalesce(t.fecha_hora_salida, 'No contrató tour')
-    , coalesce(con.importe, 'No contrató tour')
-    , coalesce(calcula_descuento(t.fecha_hora_salida,con.fecha_hora), 0)
-    , coalesce(con.importe - con.importe * (calcula_descuento(t.fecha_hora_salida,con.fecha_hora)/100), con.importe, 'No contrato tour') total
+	, coalesce(t.tematica, 'No contrató tour') tematica
+    , coalesce(t.fecha_hora_salida, 'No contrató tour') fecha_salida
+    , coalesce(con.importe, 'No contrató tour') importe_inicial
+    , coalesce(calcula_descuento(t.fecha_hora_salida,con.fecha_hora), 0) descuento
+    , coalesce(con.importe - con.importe * (calcula_descuento(t.fecha_hora_salida,con.fecha_hora)/100), con.importe, 'No contrató tour') total
 from cliente c
 left join ult_tour ut
 	on ut.cuil=c.cuil
@@ -164,7 +162,7 @@ left join contrata con
 	and con.fecha_hora=ut.ult_fecha
 left join tour t
 	on t.nro=con.nro_tour
-order by total asc;
+order by total desc;
 
 /*
 	El salario por hora de los empleados ha cambiado y se debe actualizar
