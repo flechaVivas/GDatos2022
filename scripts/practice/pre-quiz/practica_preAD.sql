@@ -136,6 +136,8 @@ having  count(con.nro_tour) >= 2;
 /*
 	Para cada cliente calcular el importe total a pagar del ultimo tour contratado,
     considerando un posible descuento. Si no tiene tour, indicar 'No contrato tours'.
+    Indicar cuil y denominacion del cliente, la fecha y tematica del tour
+    y el importe inicial, el descuento y total final
 */
 
 -- compeltarrrrrrr
@@ -145,9 +147,15 @@ with ult_tour as (
     from cliente c
     left join contrata con
 		on con.cuil_cliente=c.cuil
+        and con.fecha_hora <= current_date()
 	group by c.cuil
 )
-select datediff(t.fecha_hora_salida, con.fecha_hora)
+select c.cuil, c.denom
+	, coalesce(t.tematica, 'No contrató tour')
+    , coalesce(t.fecha_hora_salida, 'No contrató tour')
+    , coalesce(con.importe, 'No contrató tour')
+    , coalesce(calcula_descuento(t.fecha_hora_salida,con.fecha_hora), 0)
+    , coalesce(con.importe - con.importe * (calcula_descuento(t.fecha_hora_salida,con.fecha_hora)/100), con.importe, 'No contrato tour') total
 from cliente c
 left join ult_tour ut
 	on ut.cuil=c.cuil
@@ -155,7 +163,8 @@ left join contrata con
 	on con.cuil_cliente=ut.cuil
 	and con.fecha_hora=ut.ult_fecha
 left join tour t
-	on t.nro=con.nro_tour;
+	on t.nro=con.nro_tour
+order by total asc;
 
 /*
 	El salario por hora de los empleados ha cambiado y se debe actualizar
@@ -453,23 +462,19 @@ call horas_trabajadas(06,2022,10);
 */
 
 with cant_asistentes as(
-	select c.cuil, count(asi.dni) cant
+	select c.cuil, count(ac.dni_asistente) cant
 	from cliente c
-	inner join asistente_contrato ac
+	left join asistente_contrato ac
 		on ac.cuil_cliente=c.cuil
-	inner join asistente asi
-		on asi.dni=ac.dni_asistente
 	group by c.cuil
 )
 select avg(c.cant) into @promedio
 from cant_asistentes c;
 
-select c.cuil, count(asi.dni) cant
+select c.cuil, count(ac.dni_asistente) cant
 from cliente c
 inner join asistente_contrato ac
 	on ac.cuil_cliente=c.cuil
-inner join asistente asi
-	on asi.dni=ac.dni_asistente
 group by c.cuil
 having cant > @promedio;
 
