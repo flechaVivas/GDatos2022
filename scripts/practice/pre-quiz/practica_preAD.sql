@@ -462,8 +462,12 @@ call horas_trabajadas(06,2022,10);
 with cant_asistentes as(
 	select c.cuil, count(ac.dni_asistente) cant
 	from cliente c
+    left join contrata con
+		on con.cuil_cliente=c.cuil
 	left join asistente_contrato ac
-		on ac.cuil_cliente=c.cuil
+		on ac.cuil_cliente=con.cuil_cliente
+        and ac.nro_tour=con.nro_tour
+        and ac.fecha_hora=con.fecha_hora
 	group by c.cuil
 )
 select avg(c.cant) into @promedio
