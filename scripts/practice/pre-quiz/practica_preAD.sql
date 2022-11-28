@@ -347,8 +347,8 @@ with ult_salario as(
 )
 select us.cuil_empleado, '20221123',
 	case 
-		when valor < 2000 then valor * 1.35
         when valor >= 2000 then valor * 1.25
+        when valor < 2000 then valor * 1.35
 	end
 from ult_salario us
 inner join salario_hora sh
