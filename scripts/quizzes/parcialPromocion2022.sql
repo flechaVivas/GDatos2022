@@ -36,6 +36,98 @@ inner join tour t
 where ta.cant=mp.maxi and t.fecha_hora_salida <= current_date()
 order by asis.apellido, asis.nombre, t.fecha_hora_salida desc;
 
+-- Corrección Adrián Meca:
+/*
+	1. fecha_hora_salida debería
+	ser mayor a current date -0
+*/
+
+/*
+	AD - 2. Determinar el margen de ganancia por temática. 
+    Crear una función que dado un tour devuelva la el costo total
+    de todas sus actividades a la fecha de salida y otra función que
+    dado un tour devuelva el ingreso utilizando los contratos. 
+    Finalmente utilizando dichas funciones calcular el margen de ganancia 
+    total de cada temática para los tours ya iniciados. Indicar, temática, 
+    cantidad de tours y margen de ganancia. Ordenar por margen de ganancia 
+    descendente.
+
+	Margen de ganancia: (ingresos - costos)/costos
+
+*/
+
+USE `role_play_events`;
+DROP function IF EXISTS `costo_actividades`;
+
+DELIMITER $$
+USE `role_play_events`$$
+CREATE FUNCTION `costo_actividades` (nro int)
+RETURNS INTEGER READS SQL DATA
+BEGIN
+
+declare costo_tour decimal(10,2);
+	
+with cte_last_costo as(
+	select c.nro_actividad, c.codigo_locacion, max(c.fecha_desde) fecha
+    from costo c
+    where c.fecha_desde <= current_date()
+    group by c.nro_actividad, c.codigo_locacion
+)
+select sum(c.valor) into costo_tour
+from cte_last_costo lc
+inner join costo c
+	on c.codigo_locacion=lc.codigo_locacion
+    and c.nro_actividad=lc.nro_actividad
+    and c.fecha_desde=lc.fecha
+inner join escala es
+	on es.nro_actividad=c.nro_actividad
+    and es.codigo_locacion=c.codigo_locacion
+where es.nro_tour=nro;
+
+RETURN costo_tour;
+END$$
+
+DELIMITER ;
+
+USE `role_play_events`;
+DROP function IF EXISTS `ingresos_tour`;
+
+DELIMITER $$
+USE `role_play_events`$$
+CREATE FUNCTION `ingresos_tour` (nro int)
+RETURNS INTEGER READS SQL DATA
+BEGIN
+
+declare ingresos decimal(10,2);
+
+	select sum(con.importe) into ingresos
+	from contrata con
+	where con.nro_tour=nro;
+
+
+RETURN ingresos;
+END$$
+
+DELIMITER ;
+
+use role_play_events;
+select t.tematica
+	, count(*) cantidad
+    , sum(((ingresos_tour(t.nro) - costo_actividades(t.nro)) / costo_actividades(t.nro))) as margen
+from tour t
+where t.fecha_hora_salida <= current_date()
+group by t.tematica
+order by margen desc;
+
+-- Corrección Adrián Meca:
+/*
+	1. calcula costo con fecha actual
+	en lugar de con la fecha de
+	salida del tour correspondiente -2
+	2. falta coalesce -0,5
+*/
+
+
 /*
 	AD - 3. Consistencia de datos. La empresa notó que tanto la temática del tour
     como la ambientación de locación son en realidad lo mismo. Se decidió crear
@@ -122,83 +214,11 @@ ADD CONSTRAINT `fk_locacion_tematica`
   ON UPDATE CASCADE;
 
 
-
+-- Corrección Adrián Meca:
 /*
-	AD - 2. Determinar el margen de ganancia por temática. 
-    Crear una función que dado un tour devuelva la el costo total
-    de todas sus actividades a la fecha de salida y otra función que
-    dado un tour devuelva el ingreso utilizando los contratos. 
-    Finalmente utilizando dichas funciones calcular el margen de ganancia 
-    total de cada temática para los tours ya iniciados. Indicar, temática, 
-    cantidad de tours y margen de ganancia. Ordenar por margen de ganancia 
-    descendente.
-
-	Margen de ganancia: (ingresos - costos)/costos
-
+	1. utiliza insert ignore en lugar de union
+	para evitar duplicados -0 (en sistemas reales evitarlo,
+	tiene comportamientos no deseables con las columnas
+	autogeneradas, convine usar
+	insert-on-duplicate-key
 */
-
-USE `role_play_events`;
-DROP function IF EXISTS `costo_actividades`;
-
-DELIMITER $$
-USE `role_play_events`$$
-CREATE FUNCTION `costo_actividades` (nro int)
-RETURNS INTEGER READS SQL DATA
-BEGIN
-
-declare costo_tour decimal(10,2);
-	
-with cte_last_costo as(
-	select c.nro_actividad, c.codigo_locacion, max(c.fecha_desde) fecha
-    from costo c
-    where c.fecha_desde <= current_date()
-    group by c.nro_actividad, c.codigo_locacion
-)
-select sum(c.valor) into costo_tour
-from cte_last_costo lc
-inner join costo c
-	on c.codigo_locacion=lc.codigo_locacion
-    and c.nro_actividad=lc.nro_actividad
-    and c.fecha_desde=lc.fecha
-inner join escala es
-	on es.nro_actividad=c.nro_actividad
-    and es.codigo_locacion=c.codigo_locacion
-where es.nro_tour=nro;
-
-RETURN costo_tour;
-END$$
-
-DELIMITER ;
-
-USE `role_play_events`;
-DROP function IF EXISTS `ingresos_tour`;
-
-DELIMITER $$
-USE `role_play_events`$$
-CREATE FUNCTION `ingresos_tour` (nro int)
-RETURNS INTEGER READS SQL DATA
-BEGIN
-
-declare ingresos decimal(10,2);
-
-	select sum(con.importe) into ingresos
-	from contrata con
-	where con.nro_tour=nro;
-
-
-RETURN ingresos;
-END$$
-
-DELIMITER ;
-
-use role_play_events;
-select t.tematica
-	, count(*) cantidad
-    , sum(((ingresos_tour(t.nro) - costo_actividades(t.nro)) / costo_actividades(t.nro))) as margen
-from tour t
-where t.fecha_hora_salida <= current_date()
-group by t.tematica
-order by margen desc;
-
-
-
